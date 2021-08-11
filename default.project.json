@@ -1,6 +1,15 @@
 {
   "name": "InfiniteTerrain",
   "tree": {
-    "$path": "src"
+    "$className": "DataModel",
+    "PluginDebugService": {
+      "$className": "PluginDebugService",
+      "user_InfiniteTerrain.rbxmx": {
+        "$className": "Plugin",
+        "Model": {
+          "$path": "src"
+        }
+      }
+    }
   }
 }

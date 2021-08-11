@@ -9,7 +9,8 @@ This project is designed to be used with [Rojo](https://rojo.space/).
 You can build the project from scratch by using the Rojo CLI. This PowerShell command (Windows only) builds the plugin and adds it to your local plugins folder.
 
 ```powershell
-rojo build default.project.json -o $env:USERPROFILE/AppData/Local/Roblox/Plugins/InfiniteTerrain.rbxmx
+# in the repo's directory
+rojo build package.project.json -o $env:USERPROFILE/AppData/Local/Roblox/Plugins/InfiniteTerrain.rbxmx
 ```
 
 Original Content:

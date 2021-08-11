@@ -1,0 +1,2410 @@
+<roblox version="4">
+  <Item class="Model" referent="0">
+    <Properties>
+      <string name="Name">InfiniteTerrain</string>
+    </Properties>
+    <Item class="Folder" referent="1">
+      <Properties>
+        <string name="Name">Classes</string>
+      </Properties>
+      <Item class="ModuleScript" referent="2">
+        <Properties>
+          <string name="Name">Button</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+module.New = function(label)
+	local object = setmetatable({}, module)
+	
+	object.event = _G.classes["Event"].New()
+	
+	object.gui = Instance.new("Frame")
+	object.gui.Size = UDim2.new(1, 0, 0, 42)
+	object.gui.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	object.gui.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	
+	local textButton = Instance.new("TextButton")
+	textButton.Text = label
+	textButton.Font = Enum.Font.Arial
+	textButton.TextSize = 12
+	textButton.Position = UDim2.new(0, 32, 0, 4)
+	textButton.Size = UDim2.new(1, -64, 1, -8)
+	textButton.AutoButtonColor = false
+	textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+	textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder)
+	textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonText)
+	textButton.Parent = object.gui
+	textButton.MouseEnter:Connect(function()
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Hover)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textButton.MouseLeave:Connect(function()
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Default)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Default)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textButton.MouseButton1Down:Connect(function()
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Pressed)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Pressed)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Pressed)
+	end)
+	textButton.MouseButton1Up:Connect(function()
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Hover)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textButton.Activated:Connect(function()
+		object.event:Call()
+	end)
+	
+	return object
+end
+
+module.Destroy = function(self)
+	self.event:UnBindAll()
+	self.gui:Destroy()
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="3">
+        <Properties>
+          <string name="Name">Event</string>
+          <string name="Source">local module = {}
+module.__index = module
+
+module.New = function()
+	local object = setmetatable({}, module)
+	object.callbacks = {}
+	return object
+end
+
+module.Bind = function(self, callback)
+	local callbacks = {}
+	callbacks[callback] = true
+	for c, v in pairs(self.callbacks) do
+		callbacks[c] = true
+	end
+	self.callbacks = callbacks
+end
+
+module.UnBind = function(self, callback)
+	local callbacks = {}
+	for c, v in pairs(self.callbacks) do
+		if c == callback then continue end
+		callbacks[c] = true
+	end
+	self.callbacks = callbacks
+end
+
+module.UnBindAll = function(self)
+	self.callbacks = {}
+end
+
+module.Call = function(self, ...)
+	for c, v in pairs(self.callbacks) do
+		c(...)
+	end
+end
+
+return module</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="4">
+        <Properties>
+          <string name="Name">Group</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+local showing = nil
+
+module.New = function(label)
+	local object = setmetatable({}, module)
+	
+	object.gui = Instance.new("Frame")
+	object.gui.Size = UDim2.new(1, 0, 0, 0)
+	object.gui.AutomaticSize = Enum.AutomaticSize.Y
+	object.gui.BackgroundTransparency = 1
+	object.gui.BorderSizePixel = 0
+	
+	local padding = Instance.new("UIPadding")
+	padding.PaddingLeft = UDim.new(0, 1)
+	padding.PaddingRight = UDim.new(0, 1)
+	padding.Parent = object.gui
+	
+	local listLayout = Instance.new("UIListLayout")
+	listLayout.Padding = UDim.new(0, 1)
+	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	listLayout.Parent = object.gui
+		
+	local textButton = Instance.new("TextButton")
+	textButton.Text = label
+	textButton.Font = Enum.Font.ArialBold
+	textButton.TextSize = 12
+	textButton.Size = UDim2.new(1, 0, 0, 24)
+	textButton.AutoButtonColor = false
+	textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.CategoryItem)
+	textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textButton.Parent = object.gui
+	
+	object.frame = Instance.new("Frame")
+	object.frame.Size = UDim2.new(1, 0, 0, 0)
+	object.frame.AutomaticSize = Enum.AutomaticSize.Y
+	object.frame.BackgroundTransparency = 1
+	object.frame.BorderSizePixel = 0
+	object.frame.Parent = object.gui
+	
+	local listLayout = Instance.new("UIListLayout")
+	listLayout.Padding = UDim.new(0, 1)
+	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	listLayout.Parent = object.frame
+	
+	textButton.MouseEnter:Connect(function()
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.CategoryItem, Enum.StudioStyleGuideModifier.Hover)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textButton.MouseLeave:Connect(function()
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.CategoryItem, Enum.StudioStyleGuideModifier.Default)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textButton.MouseButton1Down:Connect(function()
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.CategoryItem, Enum.StudioStyleGuideModifier.Pressed)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Pressed)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Pressed)
+	end)
+	textButton.MouseButton1Up:Connect(function()
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.CategoryItem, Enum.StudioStyleGuideModifier.Hover)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	
+	textButton.Activated:Connect(function()
+		object.frame.Visible = not object.frame.Visible
+	end)
+	
+	return object
+end
+
+module.AddChild = function(self, child)
+	child.Parent = self.frame
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="5">
+        <Properties>
+          <string name="Name">Material</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+module.New = function(data)
+	local object = setmetatable({}, module)
+	
+	object.event = _G.classes["Event"].New()
+	object.data = data
+	
+	object.gui = Instance.new("Frame")
+	object.gui.Size = UDim2.new(1, 0, 0, 24)
+	object.gui.BackgroundTransparency = 1
+	object.gui.BorderSizePixel = 0
+	
+	
+	object.imageButton = Instance.new("ImageButton")
+	object.imageButton.Position = UDim2.new(0, 0, 0, 0)
+	object.imageButton.Size = UDim2.new(0.1, 0, 0, 24)
+	object.imageButton.ScaleType = Enum.ScaleType.Crop
+	object.imageButton.AutoButtonColor = false
+	object.imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	object.imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	object.imageButton.Parent = object.gui
+	object.imageButton.MouseEnter:Connect(function()
+		object.imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		object.imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		object.imageButton.ImageColor3 = Color3.new(0.75, 0.75, 0.75)
+	end)
+	object.imageButton.MouseLeave:Connect(function()
+		object.imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		object.imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		object.imageButton.ImageColor3 = Color3.new(1, 1, 1)
+	end)
+	object.imageButton.MouseButton1Down:Connect(function()
+		object.imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Pressed)
+		object.imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Pressed)
+		object.imageButton.ImageColor3 = Color3.new(0.5, 0.5, 0.5)
+	end)
+	object.imageButton.MouseButton1Up:Connect(function()
+		object.imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		object.imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		object.imageButton.ImageColor3 = Color3.new(0.75, 0.75, 0.75)
+	end)
+	object.imageButton.Activated:Connect(function()
+		object:ToggleMaterials()
+	end)
+	
+	for i, data in ipairs(_G.modules["Data"].materials) do
+		if data[1] == object.data[1] then
+			object.imageButton.Image = data[2]
+			break
+		end
+	end
+	
+	local textBox = Instance.new("TextBox")
+	textBox.Text = object.data[2]
+	textBox.Position = UDim2.new(0.1, 0, 0, 0)
+	textBox.Size = UDim2.new(0.2, 0, 0, 24)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[2]
+		textBox.Text = newValue
+		if object.data[2] == newValue then return end
+		object.data[2] = newValue
+		object.event:Call(1, object.data)
+	end)
+
+	local textBox = Instance.new("TextBox")
+	textBox.Text = object.data[3]
+	textBox.Position = UDim2.new(0.3, 0, 0, 0)
+	textBox.Size = UDim2.new(0.2, 0, 0, 24)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[3]
+		textBox.Text = newValue
+		if object.data[3] == newValue then return end
+		object.data[3] = newValue
+		object.event:Call(1, object.data)
+	end)
+	
+	local textBox = Instance.new("TextBox")
+	textBox.Text = object.data[4]
+	textBox.Position = UDim2.new(0.5, 0, 0, 0)
+	textBox.Size = UDim2.new(0.2, 0, 0, 24)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[4]
+		textBox.Text = newValue
+		if object.data[4] == newValue then return end
+		object.data[4] = newValue
+		object.event:Call(1, object.data)
+	end)
+	
+	local textBox = Instance.new("TextBox")
+	textBox.Text = object.data[5]
+	textBox.Position = UDim2.new(0.7, 0, 0, 0)
+	textBox.Size = UDim2.new(0.2, 0, 0, 24)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[5]
+		textBox.Text = newValue
+		if object.data[5] == newValue then return end
+		object.data[5] = newValue
+		object.event:Call(1, object.data)
+	end)
+	
+	local frame = Instance.new("Frame")
+	frame.Position = UDim2.new(0.9, 0, 0, 0)
+	frame.Size = UDim2.new(0.1, 0, 0, 24)
+	frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	frame.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	frame.Parent = object.gui
+	
+	local imageButton = Instance.new("ImageButton")
+	imageButton.Position = UDim2.new(0, 4, 0, 3)
+	imageButton.Size = UDim2.new(1, -8, 0, 8)
+	imageButton.ScaleType = Enum.ScaleType.Fit
+	imageButton.Image = "rbxassetid://7228266793"
+	imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+	imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder)
+	imageButton.Parent = frame
+	imageButton.Activated:Connect(function()
+		object.event:Call(2)
+	end)
+	
+	local imageButton = Instance.new("ImageButton")
+	imageButton.Position = UDim2.new(0, 4, 0, 13)
+	imageButton.Size = UDim2.new(1, -8, 0, 8)
+	imageButton.ScaleType = Enum.ScaleType.Fit
+	imageButton.Image = "rbxassetid://7228267193"
+	imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+	imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder)
+	imageButton.Parent = frame
+	imageButton.Activated:Connect(function()
+		object.event:Call(3)
+	end)
+	
+	return object
+end
+
+module.ToggleMaterials = function(self)
+	if self.frame ~= nil then
+		self.frame:Destroy()
+		self.frame = nil
+		self.gui.Size = UDim2.new(1, 0, 0, 24)
+	else
+		self.gui.Size = UDim2.new(1, 0, 0, 198)
+
+		self.frame = Instance.new("Frame")
+		self.frame.Position = UDim2.new(0, 0, 0, 24)
+		self.frame.Size = UDim2.new(1, 0, 0, 174)
+		self.frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Dropdown)
+		self.frame.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)	
+
+		local padding = Instance.new("UIPadding")
+		padding.PaddingBottom = UDim.new(0, 8)
+		padding.PaddingLeft = UDim.new(0, 8)
+		padding.PaddingRight = UDim.new(0, 8)
+		padding.PaddingTop = UDim.new(0, 8)
+		padding.Parent = self.frame
+
+		local gridLayout = Instance.new("UIGridLayout")
+		gridLayout.CellSize = UDim2.new(0.125, -4, 0, 50)
+		gridLayout.CellPadding = UDim2.new(0, 4, 0, 4)
+		gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		gridLayout.Parent = self.frame
+
+		for i, data in ipairs(_G.modules["Data"].materials) do
+			local imageButton = Instance.new("ImageButton")
+			imageButton.Image = data[2]
+			imageButton.ScaleType = Enum.ScaleType.Crop
+			imageButton.AutoButtonColor = false
+			imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+			imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder)
+			imageButton.MouseEnter:Connect(function()
+				imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+				imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Hover)
+				imageButton.ImageColor3 = Color3.new(0.75, 0.75, 0.75)
+			end)
+			imageButton.MouseLeave:Connect(function()
+				imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Default)
+				imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Default)
+				imageButton.ImageColor3 = Color3.new(1, 1, 1)
+			end)
+			imageButton.MouseButton1Down:Connect(function()
+				imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Pressed)
+				imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Pressed)
+				imageButton.ImageColor3 = Color3.new(0.5, 0.5, 0.5)
+			end)
+			imageButton.MouseButton1Up:Connect(function()
+				imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+				imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Hover)
+				imageButton.ImageColor3 = Color3.new(0.75, 0.75, 0.75)
+			end)
+			imageButton.Activated:Connect(function()
+				self:ToggleMaterials()
+				if self.data[1] == data[1] then return end
+				self.data[1] = data[1]
+				self.imageButton.Image = data[2]
+				self.event:Call(1, self.data)
+			end)
+			imageButton.Parent = self.frame
+		end
+		self.frame.Parent = self.gui
+	end
+end
+
+module.Destroy = function(self)
+	self.event:UnBindAll()
+	self.gui:Destroy()
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="6">
+        <Properties>
+          <string name="Name">Materials</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+module.New = function(value)
+	local object = setmetatable({}, module)
+	
+	object.event = _G.classes["Event"].New()
+	object.value = value
+	object.selected = value or ""
+	
+	object.gui = Instance.new("Frame")
+	object.gui.Size = UDim2.new(1, 0, 0, 184)
+	object.gui.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	object.gui.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	
+	local padding = Instance.new("UIPadding")
+	padding.PaddingBottom = UDim.new(0, 8)
+	padding.PaddingLeft = UDim.new(0, 8)
+	padding.PaddingRight = UDim.new(0, 0)
+	padding.PaddingTop = UDim.new(0, 8)
+	padding.Parent = object.gui
+	
+	local gridLayout = Instance.new("UIGridLayout")
+	gridLayout.CellSize = UDim2.new(0.125, -8, 0, 50)
+	gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
+	gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	gridLayout.Parent = object.gui
+	
+	
+	object.imageButtons = {}
+	for i, data in ipairs(_G.modules["Data"].materials) do
+		local imageButton = Instance.new("ImageButton")
+		imageButton.Image = data[2]
+		imageButton.ScaleType = Enum.ScaleType.Crop
+		imageButton.BorderSizePixel = 2
+		imageButton.AutoButtonColor = false
+		imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+		if object.selected == (data[1] or "") then
+			imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Selected)
+		else
+			imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder)
+		end
+		
+		imageButton.Parent = object.gui
+				
+		imageButton.MouseEnter:Connect(function()
+			if object.selected == (data[1] or "") then return end
+			imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+			imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Hover)
+			imageButton.ImageColor3 = Color3.new(0.75, 0.75, 0.75)
+		end)
+		imageButton.MouseLeave:Connect(function()
+			if object.selected == (data[1] or "") then return end
+			imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Default)
+			imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Default)
+			imageButton.ImageColor3 = Color3.new(1, 1, 1)
+		end)
+		imageButton.MouseButton1Down:Connect(function()
+			if object.selected == (data[1] or "") then return end
+			imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Pressed)
+			imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Pressed)
+			imageButton.ImageColor3 = Color3.new(0.5, 0.5, 0.5)
+		end)
+		imageButton.MouseButton1Up:Connect(function()
+			if object.selected == (data[1] or "") then return end
+			imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+			imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Hover)
+			imageButton.ImageColor3 = Color3.new(0.75, 0.75, 0.75)
+		end)
+		imageButton.Activated:Connect(function()
+			if object.value == data[1] then return end
+			object.value = data[1]
+			object.event:Call(object.value)
+		end)
+		object.imageButtons[data[1] or ""] = imageButton
+	end
+	
+	return object
+end
+
+module.Select = function(self, value)
+	self.imageButtons[self.selected].BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Default)
+	self.imageButtons[self.selected].BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder, Enum.StudioStyleGuideModifier.Default)
+	self.imageButtons[self.selected].ImageColor3 = Color3.new(1, 1, 1)
+	self.selected = value or ""
+	self.imageButtons[self.selected].BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Default)
+	self.imageButtons[self.selected].BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Selected)
+	self.imageButtons[self.selected].ImageColor3 = Color3.new(1, 1, 1)
+end
+
+module.Destroy = function(self)
+	self.event:UnBindAll()
+	self.gui:Destroy()
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="7">
+        <Properties>
+          <string name="Name">Number</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+module.New = function(label, value, data)
+	local object = setmetatable({}, module)
+	
+	object.event = _G.classes["Event"].New()
+	object.value = value
+	object.data = data or {}
+	
+	object.gui = Instance.new("Frame")
+	object.gui.Size = UDim2.new(1, 0, 0, 24)
+	object.gui.BackgroundTransparency = 1
+	object.gui.BorderSizePixel = 0
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Text = label or ""
+	textLabel.Font = Enum.Font.Arial
+	textLabel.TextSize = 12
+	textLabel.Position = UDim2.new(0, 0, 0, 0)
+	textLabel.Size = UDim2.new(0, 120, 1, 0)
+	textLabel.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textLabel.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textLabel.Parent = object.gui
+	
+	object.textBox = Instance.new("TextBox")
+	object.textBox.Text = object.value
+	object.textBox.Font = Enum.Font.Arial
+	object.textBox.TextSize = 12
+	object.textBox.Position = UDim2.new(0, 121, 0, 0)
+	object.textBox.Size = UDim2.new(1, -121, 1, 0)
+	object.textBox.ClearTextOnFocus = false
+	object.textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	object.textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	object.textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	object.textBox.Parent = object.gui
+	object.textBox.MouseEnter:Connect(function()
+		object.textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		object.textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		object.textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	object.textBox.MouseLeave:Connect(function()
+		object.textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		object.textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		object.textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	object.textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(object.textBox.Text) or object.value
+		if object.data.minimum then newValue = math.max(newValue, object.data.minimum) end
+		if object.data.maximum then newValue = math.min(newValue, object.data.maximum) end
+		if object.data.round then newValue = _G.modules["Functions"].Round(newValue, object.data.round) end
+		object.textBox.Text = newValue
+		if object.value == newValue then return end
+		object.value = newValue
+		object.event:Call(object.value)
+	end)
+	
+	return object
+end
+
+module.Set = function(self, value)
+	if self.value == value then return end
+	if self.data.minimum then value = math.max(value, self.data.minimum) end
+	if self.data.maximum then value = math.min(value, self.data.maximum) end
+	if self.data.round then value = _G.modules["Functions"].Round(value, self.data.round) end
+	self.value = value
+	self.textBox.Text = tonumber(self.value)
+	self.event:Call(self.value)
+end
+
+module.Destroy = function(self)
+	self.event:UnBindAll()
+	self.gui:Destroy()
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="8">
+        <Properties>
+          <string name="Name">Seed</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+module.New = function(data)
+	local object = setmetatable({}, module)
+	
+	object.event = _G.classes["Event"].New()
+	object.data = data
+	
+	object.gui = Instance.new("Frame")
+	object.gui.Size = UDim2.new(1, 0, 0, 24)
+	object.gui.BackgroundTransparency = 1
+	object.gui.BorderSizePixel = 0
+	
+	local imageButton = Instance.new("ImageButton")
+	imageButton.Position = UDim2.new(0, 0, 0, 0)
+	imageButton.Size = UDim2.new(0.1, -1, 1, 0)
+	imageButton.ScaleType = Enum.ScaleType.Fit
+	imageButton.Image = "rbxasset://textures/CollisionGroupsEditor/delete.png"
+	imageButton.AutoButtonColor = false
+	imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	imageButton.Parent = object.gui
+	imageButton.MouseEnter:Connect(function()
+		imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		imageButton.ImageColor3 = Color3.new(0.75, 0.75, 0.75)
+	end)
+	imageButton.MouseLeave:Connect(function()
+		imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		imageButton.ImageColor3 = Color3.new(1, 1, 1)
+	end)
+	imageButton.MouseButton1Down:Connect(function()
+		imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Pressed)
+		imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Pressed)
+		imageButton.ImageColor3 = Color3.new(0.5, 0.5, 0.5)
+	end)
+	imageButton.MouseButton1Up:Connect(function()
+		imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		imageButton.ImageColor3 = Color3.new(0.75, 0.75, 0.75)
+	end)
+	imageButton.Activated:Connect(function()
+		object.event:Call(4)
+	end)
+	
+	local textBox = Instance.new("TextBox")
+	textBox.Text = tonumber(object.data[1])
+	textBox.Position = UDim2.new(0.1, 0, 0, 0)
+	textBox.Size = UDim2.new(0.16, -1, 1, 0)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[1]
+		textBox.Text = newValue
+		if object.data[1] == newValue then return end
+		object.data[1] = newValue
+		object.event:Call(1, object.data)
+	end)
+	
+	local textBox = Instance.new("TextBox")
+	textBox.Text = tonumber(object.data[2])
+	textBox.Position = UDim2.new(0.26, 0, 0, 0)
+	textBox.Size = UDim2.new(0.16, -1, 1, 0)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[2]
+		textBox.Text = newValue
+		if object.data[2] == newValue then return end
+		object.data[2] = newValue
+		object.event:Call(1, object.data)
+	end)
+	
+	local textBox = Instance.new("TextBox")
+	textBox.Text = tonumber(object.data[3])
+	textBox.Position = UDim2.new(0.42, 0, 0, 0)
+	textBox.Size = UDim2.new(0.16, -1, 1, 0)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[3]
+		textBox.Text = newValue
+		if object.data[3] == newValue then return end
+		object.data[3] = newValue
+		object.event:Call(1, object.data)
+	end)
+	
+	local textBox = Instance.new("TextBox")
+	textBox.Text = tonumber(object.data[4])
+	textBox.Position = UDim2.new(0.58, 0, 0, 0)
+	textBox.Size = UDim2.new(0.16, -1, 1, 0)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[4]
+		textBox.Text = newValue
+		if object.data[4] == newValue then return end
+		object.data[4] = newValue
+		object.event:Call(1, object.data)
+	end)
+	
+	local textBox = Instance.new("TextBox")
+	textBox.Text = tonumber(object.data[5])
+	textBox.Position = UDim2.new(0.74, 0, 0, 0)
+	textBox.Size = UDim2.new(0.16, -1, 1, 0)
+	textBox.ClearTextOnFocus = false
+	textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textBox.Parent = object.gui
+	textBox.MouseEnter:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textBox.MouseLeave:Connect(function()
+		textBox.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textBox.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textBox.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textBox.FocusLost:Connect(function(enterPressed, inputThatCausedFocusLoss)
+		local newValue = tonumber(textBox.Text) or object.data[5]
+		textBox.Text = newValue
+		if object.data[5] == newValue then return end
+		object.data[5] = newValue
+		object.event:Call(1, object.data)
+	end)
+	
+	local frame = Instance.new("Frame")
+	frame.Position = UDim2.new(0.9, 0, 0, 0)
+	frame.Size = UDim2.new(0.1, 0, 0, 24)
+	frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	frame.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	frame.Parent = object.gui
+	
+	local imageButton = Instance.new("ImageButton")
+	imageButton.Position = UDim2.new(0, 4, 0, 3)
+	imageButton.Size = UDim2.new(1, -8, 0, 8)
+	imageButton.ScaleType = Enum.ScaleType.Fit
+	imageButton.Image = "rbxassetid://7228266793"
+	imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+	imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder)
+	imageButton.Parent = frame
+	imageButton.Activated:Connect(function()
+		object.event:Call(2)
+	end)
+
+	local imageButton = Instance.new("ImageButton")
+	imageButton.Position = UDim2.new(0, 4, 0, 13)
+	imageButton.Size = UDim2.new(1, -8, 0, 8)
+	imageButton.ScaleType = Enum.ScaleType.Fit
+	imageButton.Image = "rbxassetid://7228267193"
+	imageButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+	imageButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ButtonBorder)
+	imageButton.Parent = frame
+	imageButton.Activated:Connect(function()
+		object.event:Call(3)
+	end)
+	
+	return object
+end
+
+module.Destroy = function(self)
+	self.event:UnBindAll()
+	self.gui:Destroy()
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="9">
+        <Properties>
+          <string name="Name">Toggle</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+local buttonLabel = {[true] = "On", [false] = "Off"}
+
+module.New = function(label, value)
+	local object = setmetatable({}, module)
+	
+	object.event = _G.classes["Event"].New()
+	object.value = value
+	
+	object.gui = Instance.new("Frame")
+	object.gui.Size = UDim2.new(1, 0, 0, 24)
+	object.gui.BackgroundTransparency = 1
+	object.gui.BorderSizePixel = 0
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Text = label or ""
+	textLabel.Font = Enum.Font.Arial
+	textLabel.TextSize = 12
+	textLabel.Position = UDim2.new(0, 0, 0, 0)
+	textLabel.Size = UDim2.new(0, 120, 1, 0)
+	textLabel.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textLabel.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textLabel.Parent = object.gui
+	
+	local textButton = Instance.new("TextButton")
+	textButton.Text = buttonLabel[object.value]
+	textButton.Font = Enum.Font.Arial
+	textButton.TextSize = 12
+	textButton.Position = UDim2.new(0, 121, 0, 0)
+	textButton.Size = UDim2.new(1, -121, 1, 0)
+	textButton.AutoButtonColor = false
+	textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	textButton.Parent = object.gui
+	textButton.MouseEnter:Connect(function()
+		if object.value == true then return end
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	textButton.MouseLeave:Connect(function()
+		if object.value == true then return end
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	textButton.MouseButton1Down:Connect(function()
+		if object.value == true then return end
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Pressed)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Pressed)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Pressed)
+	end)
+	textButton.MouseButton1Up:Connect(function()
+		if object.value == true then return end
+		textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)	
+	textButton.Activated:Connect(function()
+		object.value = not object.value
+		if object.value == false then
+			textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+			textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+			textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+		else
+			textButton.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Selected)
+			textButton.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Selected)
+			textButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Selected)
+		end
+		textButton.Text = buttonLabel[object.value]
+		object.event:Call(object.value)
+	end)
+	
+	return object
+end
+
+module.Destroy = function(self)
+	self.event:UnBindAll()
+	self.gui:Destroy()
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="10">
+        <Properties>
+          <string name="Name">WidgetButton</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+local selected = nil
+
+module.New = function(label, image, order)
+	local object = setmetatable({}, module)
+	
+	object.button = Instance.new("ImageButton")
+	object.button.LayoutOrder = order
+	object.button.AutoButtonColor = false
+	object.button.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item)
+	object.button.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	object.button.Parent = _G.modules["Widget"].frame
+
+	object.imageLabel = Instance.new("ImageLabel")
+	object.imageLabel.Image = image
+	object.imageLabel.BackgroundTransparency = 1
+	object.imageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	object.imageLabel.Position = UDim2.new(0.5, 0, 0.3, 0)
+	object.imageLabel.Size = UDim2.new(0, 25, 0, 25)
+	object.imageLabel.Parent = object.button
+
+	object.textLabel = Instance.new("TextLabel")
+	object.textLabel.Text = label
+	object.textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	object.textLabel.BackgroundTransparency = 1
+	object.textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	object.textLabel.Position = UDim2.new(0.5, 0, 0.8, 0)
+	object.textLabel.Parent = object.button
+	
+	object.selected = _G.classes["Event"].New()
+	object.deselected = _G.classes["Event"].New()
+
+	local children = _G.modules["Widget"].frame:GetChildren()
+	local width = 1 / (#children - 2)
+	for i, child in ipairs(children) do
+		if child.ClassName ~= "ImageButton" then continue end
+		child.Size = UDim2.new(width, -4, 1, 0)
+	end
+
+	object.button.MouseEnter:Connect(function()
+		if selected == object then return end
+		object.button.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		object.button.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		object.textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	object.button.MouseLeave:Connect(function()
+		if selected == object then return end
+		object.button.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		object.button.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		object.textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+	end)
+	object.button.MouseButton1Down:Connect(function()
+		if selected == object then return end
+		object.button.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Pressed)
+		object.button.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Pressed)
+		object.textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Pressed)
+	end)
+	object.button.MouseButton1Up:Connect(function()
+		if selected == object then return end
+		object.button.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Hover)
+		object.button.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Hover)
+		object.textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+	end)
+	
+	return object
+end
+
+module.Select = function(self)
+	if selected == self then return end
+	if selected ~= nil then
+		selected.button.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Default)
+		selected.button.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Default)
+		selected.textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Default)
+		selected.deselected:Call()
+	end
+	selected = self
+	selected.button.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Item, Enum.StudioStyleGuideModifier.Selected)
+	selected.button.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border, Enum.StudioStyleGuideModifier.Selected)
+	selected.textLabel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Selected)
+	selected.selected:Call()
+end
+
+module.Activated = function(self, callback)
+	self.button.Activated:Connect(callback)
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="11">
+        <Properties>
+          <string name="Name">WidgetPage</string>
+          <string name="Source"><![CDATA[local module = {}
+module.__index = module
+
+local showing = nil
+
+module.New = function()
+	local object = setmetatable({}, module)
+	
+	object.scrollingFrame = Instance.new("ScrollingFrame")
+	object.scrollingFrame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainBackground)
+	object.scrollingFrame.BorderColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	object.scrollingFrame.ScrollBarImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.ScrollBar)
+	object.scrollingFrame.Position = UDim2.new(0, 0, 0, 60)
+	object.scrollingFrame.Size = UDim2.new(1, 0, 1, -60)
+	object.scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	object.scrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	
+	local listLayout = Instance.new("UIListLayout")
+	listLayout.Padding = UDim.new(0, 1)
+	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	listLayout.Parent = object.scrollingFrame
+	
+	return object
+end
+
+module.AddChild = function(self, child)
+	child.Parent = self.scrollingFrame
+end
+
+module.Show = function(self)
+	if showing ~= nil then
+		showing.scrollingFrame.Parent = nil
+	end
+	showing = self
+	showing.scrollingFrame.Parent = _G.modules["Widget"].window
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="LocalScript" referent="12">
+      <Properties>
+        <string name="Name">LocalScript</string>
+        <bool name="Disabled">true</bool>
+        <string name="Source">if game:IsLoaded() == false then game.Loaded:Wait() end
+local dataChild = nil
+local heightChild = nil
+local materialChild = nil
+for i, child in ipairs(script:GetChildren()) do
+	if child.ClassName == "ModuleScript" then
+		local data = child:GetAttribute("Data")
+		if data == "Terrain" then
+			dataChild = child
+		end
+	elseif child.ClassName == "Folder" then
+		local data = child:GetAttribute("Data")
+		if data == "Height" then
+			heightChild = child
+		elseif data == "Material" then
+			materialChild = child
+		end
+	end
+end
+if dataChild == nil then return end
+
+local distance = 16
+local chunkSize = 16
+local positionX = math.huge
+local positionZ = math.huge
+local heightData = {}
+local materialData = {}
+local loaded = {}
+
+local data = require(dataChild)
+
+if heightChild then
+	for i, child in ipairs(heightChild:GetDescendants()) do
+		if child.ClassName ~= "ModuleScript" then continue end
+		local data = require(child)
+		local position = child:GetAttribute("Position")
+		for i = 1, #data, 2 do
+			local x = position.X + data[i]
+			local zData = data[i + 1]
+			if heightData[x] == nil then heightData[x] = {} end
+			for j = 1, #zData, 2 do
+				local z = position.Y + zData[j]
+				local height = zData[j + 1]
+				heightData[x][z] = height
+			end
+		end
+	end
+end
+
+if materialChild then
+	for i, child in ipairs(materialChild:GetDescendants()) do
+		if child.ClassName ~= "ModuleScript" then continue end
+		local data = require(child)
+		local position = child:GetAttribute("Position")
+		for i = 1, #data, 2 do
+			local x = position.X + data[i]
+			local zData = data[i + 1]
+			if materialData[x] == nil then materialData[x] = {} end
+			for j = 1, #zData, 2 do
+				local z = position.Y + zData[j]
+				local material = zData[j + 1]
+				materialData[x][z] = material
+			end
+		end
+	end
+end
+
+
+GetHeight = function(x, z)
+	if heightData[x] == nil then heightData[x] = {} end
+	if heightData[x][z] ~= nil then return heightData[x][z] end	
+	local height = 0
+	for i, data in ipairs(data.seeds) do
+		local noise = math.noise(x * data[3], data[1], z * data[3])
+		height += math.clamp(noise, data[4], data[5]) * data[2]
+	end
+	height += data.shift
+	height = math.clamp(height, data.minimumHeight, data.maximumHeight)
+	heightData[x][z] = height
+	return height
+end
+
+Load = function(x, z)
+	local minimum = math.huge
+	local maximum = -math.huge
+	for xx = x-1, x+1 do
+		for zz = z-1, z+1 do
+			local height = GetHeight(xx, zz)
+			minimum = math.min(minimum, height)
+			maximum = math.max(maximum, height)
+		end
+	end
+	local slope = maximum - minimum
+	local height = heightData[x][z]
+	local thickness = height - minimum + 4
+	local cFrame = CFrame.new(x * 4 + 2, height - thickness / 2, z * 4 + 2)
+	local size = Vector3.new(4, thickness, 4)
+	if materialData[x] ~= nil and materialData[x][z] ~= nil then
+		workspace.Terrain:FillBlock(cFrame, size, materialData[x][z])
+	else
+		for i, materialData in ipairs(data.materials) do
+			if height >= materialData[2] and height &lt; materialData[3] and slope >= materialData[4] and slope &lt; materialData[5] then
+				workspace.Terrain:FillBlock(cFrame, size, materialData[1])
+				break
+			end
+		end
+	end
+	height = math.floor(height / 4) * 4
+	if height >= data.waterHeight then return end
+	thickness = data.waterHeight - height
+	local cFrame = CFrame.new(x * 4 + 2, height + thickness / 2, z * 4 + 2)
+	local size = Vector3.new(4, thickness, 4)
+	workspace.Terrain:FillBlock(cFrame, size, Enum.Material.Water)
+end
+
+LoadChunk = function(chunkX, chunkZ)
+	if loaded[chunkX] == nil then loaded[chunkX] = {} end
+	if loaded[chunkX][chunkZ] ~= nil then return end
+	loaded[chunkX][chunkZ] = true
+	local startX = chunkX * chunkSize
+	local startZ = chunkZ * chunkSize
+	local endX = startX + chunkSize - 1
+	local endZ = startZ + chunkSize - 1
+	for x = startX, endX do
+		for z = startZ, endZ do
+			Load(x, z)
+		end
+	end
+	wait()
+end
+
+LoadChunks = function(chunkX, chunkZ, hole)
+	if hole == nil then hole = 0 LoadChunk(chunkX, chunkZ) end
+	hole = hole * 2 + 1
+	local x = chunkX + math.floor(hole/2)
+	local z = chunkZ - math.floor(hole/2)
+	local dx, dz = 1, 0
+	local passed = hole - 1
+	local length = hole
+	local amount = (distance * 2 + 1) * (distance * 2 + 1) - hole * hole
+	for i = 1, amount do
+		x += dx z += dz
+		if Vector2.new(chunkX - x, chunkZ - z).Magnitude &lt; distance + 0.5 then LoadChunk(x, z) end
+		passed += 1
+		if passed == length then passed = 0 dx, dz = -dz, dx if dz == 0 then length += 1 end end
+	end
+end
+
+workspace.CurrentCamera:GetPropertyChangedSignal("Focus"):Connect(function()
+	local x = workspace.CurrentCamera.Focus.Position.X
+	local z = workspace.CurrentCamera.Focus.Position.Z
+	local magnitude = Vector2.new(positionX - x, positionZ - z).Magnitude
+	if magnitude &lt; chunkSize * 8 then return end
+	positionX, positionZ = x, z
+	x = math.floor(positionX / 4 / chunkSize)
+	z = math.floor(positionZ / 4 / chunkSize)
+	if magnitude &lt; distance * chunkSize * 2 then
+		LoadChunks(x, z, math.floor(distance / 2 - 0.5))
+	else
+		LoadChunks(x, z)
+	end
+end)</string>
+      </Properties>
+    </Item>
+    <Item class="Folder" referent="13">
+      <Properties>
+        <string name="Name">Modules</string>
+      </Properties>
+      <Item class="ModuleScript" referent="14">
+        <Properties>
+          <string name="Name">Data</string>
+          <string name="Source"><![CDATA[local module = {}
+
+module.materials = {
+	{nil, "rbxasset://textures/CollisionGroupsEditor/delete.png"},
+	{1792, "rbxassetid://7227350355"},
+	{1376, "rbxasset://textures/TerrainTools/mtrl_asphalt.png"},
+	{788, "rbxasset://textures/TerrainTools/mtrl_basalt.png"},
+	{848, "rbxasset://textures/TerrainTools/mtrl_brick.png"},
+	{880, "rbxasset://textures/TerrainTools/mtrl_cobblestone.png"},
+	{816, "rbxasset://textures/TerrainTools/mtrl_concrete.png"},
+	{804, "rbxasset://textures/TerrainTools/mtrl_crackedlava.png"},
+	{1552, "rbxasset://textures/TerrainTools/mtrl_glacier.png"},
+	{1280, "rbxasset://textures/TerrainTools/mtrl_grass.png"},
+	{1360, "rbxasset://textures/TerrainTools/mtrl_ground.png"},
+	{1536, "rbxasset://textures/TerrainTools/mtrl_ice.png"},
+	{1284, "rbxasset://textures/TerrainTools/mtrl_leafygrass.png"},
+	{820, "rbxasset://textures/TerrainTools/mtrl_limestone.png"},
+	{1344, "rbxasset://textures/TerrainTools/mtrl_mud.png"},
+	{836, "rbxasset://textures/TerrainTools/mtrl_pavement.png"},
+	{896, "rbxasset://textures/TerrainTools/mtrl_rock.png"},
+	{1392, "rbxasset://textures/TerrainTools/mtrl_salt.png"},
+	{1296, "rbxasset://textures/TerrainTools/mtrl_sand.png"},
+	{912, "rbxasset://textures/TerrainTools/mtrl_sandstone.png"},
+	{800, "rbxasset://textures/TerrainTools/mtrl_slate.png"},
+	{1328, "rbxasset://textures/TerrainTools/mtrl_snow.png"},
+	{2048, "rbxasset://textures/TerrainTools/mtrl_water.png"},
+	{528, "rbxasset://textures/TerrainTools/mtrl_woodplanks.png"},
+}
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="15">
+        <Properties>
+          <string name="Name">Edit</string>
+          <string name="Source"><![CDATA[local module = {}
+
+local inputService = game:GetService("UserInputService")
+local positionX = math.huge
+local positionZ = math.huge
+local strength = 1
+local size = 4
+
+module.Initiate = function()
+	local mouse = _G.plugin:GetMouse()
+	local connection1 = nil
+	local connection2 = nil
+	local connection3 = nil
+	
+	local widgetButton = _G.classes["WidgetButton"].New("Edit", "rbxassetid://3079003835", 2)
+	local widgetPage = _G.classes["WidgetPage"].New()
+	
+	local dataGroup = _G.classes["Group"].New("Data")
+	widgetPage:AddChild(dataGroup.gui)
+
+	local strengthOption = _G.classes["Number"].New("Strength", strength, {["round"] = 1})
+	dataGroup:AddChild(strengthOption.gui)
+	strengthOption.event:Bind(function(value)
+		strength = value
+	end)
+
+	local sizeOption = _G.classes["Number"].New("Size", size, {["minimum"] = 0, ["round"] = 0})
+	dataGroup:AddChild(sizeOption.gui)
+	sizeOption.event:Bind(function(value)
+		size = value
+	end)
+
+	local functionsGroup = _G.classes["Group"].New("Functions")
+	widgetPage:AddChild(functionsGroup.gui)
+
+	local saveOption = _G.classes["Button"].New("Save Height Data")
+	functionsGroup:AddChild(saveOption.gui)
+	saveOption.event:Bind(function()
+		local selection = game.Selection:Get()[1]
+		if selection == nil then return end
+		for i, child in ipairs(selection:GetChildren()) do
+			if child.Name ~= "HeightData" then continue end
+			if child.ClassName ~= "Folder" then continue end
+			if child:GetAttribute("Data") ~= "Height" then continue end
+			child:Destroy()
+		end
+		local chunkSize = 64
+		local folder = Instance.new("Folder")
+		folder.Name = "HeightData"
+		folder:SetAttribute("Data", "Height")
+		folder.Parent = selection
+		local datas = {}
+		for x, v in pairs(_G.modules["Terrain"].heightData) do
+			for z, height in pairs(v) do
+				local chunkX = math.floor(x / chunkSize)
+				local chunkZ = math.floor(z / chunkSize)
+				local lx = x - chunkX * chunkSize
+				local lz = z - chunkZ * chunkSize
+				if datas[chunkX] == nil then datas[chunkX] = {} end
+				local data = datas[chunkX][chunkZ]
+				if data == nil then
+					data = {}
+					datas[chunkX][chunkZ] = data
+					data.script = Instance.new("ModuleScript")
+					data.buffer = {}
+					table.insert(data.buffer, 'return {\n')
+				end
+				if data.x ~= lx then
+					if data.x ~= nil then table.insert(data.buffer, '},\n') end
+					table.insert(data.buffer, lx)
+					table.insert(data.buffer, ',{')
+					data.x = lx
+				else
+					table.insert(data.buffer, ',')
+				end
+				table.insert(data.buffer, lz)
+				table.insert(data.buffer, ',')
+				table.insert(data.buffer, height)
+			end
+		end
+		for chunkX, v in pairs(datas) do
+			for chunkZ, data in pairs(v) do
+				table.insert(data.buffer, '},\n}')
+				data.script.Name = chunkX .. "," .. chunkZ
+				data.script:SetAttribute("Position", Vector2.new(chunkX * chunkSize, chunkZ * chunkSize))
+				data.script.Source = table.concat(data.buffer)
+				data.script.Parent = folder
+			end
+		end	
+	end)
+
+	local loadOption = _G.classes["Button"].New("Load Height Data")
+	functionsGroup:AddChild(loadOption.gui)
+	loadOption.event:Bind(function()
+		local selection = game.Selection:Get()[1]
+		if selection == nil then return end
+		if selection.ClassName ~= "Folder" then return end
+		if selection:GetAttribute("Data") ~= "Height" then return end
+		for i, child in ipairs(selection:GetDescendants()) do
+			if child.ClassName ~= "ModuleScript" then continue end
+			local func = loadstring(child.Source)
+			if typeof(func) ~= "function" then return end
+			local data = func()
+			if typeof(data) ~= "table" then return end
+			local position = child:GetAttribute("Position")
+			for i = 1, #data, 2 do
+				local x = position.X + data[i]
+				local zData = data[i + 1]
+				if _G.modules["Terrain"].heightData[x] == nil then _G.modules["Terrain"].heightData[x] = {} end
+				for j = 1, #zData, 2 do
+					local z = position.Y + zData[j]
+					local height = zData[j + 1]
+					_G.modules["Terrain"].heightData[x][z] = height
+				end
+			end
+		end
+	end)
+
+	local clearEditDataOption = _G.classes["Button"].New("Clear Height Data")
+	functionsGroup:AddChild(clearEditDataOption.gui)
+	clearEditDataOption.event:Bind(function()
+		_G.modules["Terrain"].heightData = {}
+	end)
+
+	local clearTerrainOption = _G.classes["Button"].New("Clear Terrain")
+	functionsGroup:AddChild(clearTerrainOption.gui)
+	clearTerrainOption.event:Bind(function()
+		_G.modules["Terrain"].Clear()
+	end)
+
+	local clearAllTerrainOption = _G.classes["Button"].New("Clear All Terrain")
+	functionsGroup:AddChild(clearAllTerrainOption.gui)
+	clearAllTerrainOption.event:Bind(function()
+		_G.modules["Terrain"].ClearAll()
+	end)
+	
+	
+	widgetButton:Activated(function()
+		widgetButton:Select()
+		widgetPage:Show()
+	end)
+	
+	widgetButton.selected:Bind(function()
+		_G.plugin:Activate(true)
+		connection1 = mouse.Button1Down:Connect(function()
+			if mouse.Target == nil then return end
+			local x = math.floor(mouse.Hit.Position.X / 4)
+			local z = math.floor(mouse.Hit.Position.Z / 4)
+			positionX, positionZ = x, z
+			local height = mouse.Hit.Position.Y - 2
+			if inputService:IsKeyDown(Enum.KeyCode.LeftControl) == true and inputService:IsKeyDown(Enum.KeyCode.LeftAlt) == true then 
+				_G.modules["Terrain"].Set(x, z, size, nil)
+			elseif inputService:IsKeyDown(Enum.KeyCode.LeftControl) == true then
+				_G.modules["Terrain"].Set(x, z, size, height)
+			elseif inputService:IsKeyDown(Enum.KeyCode.LeftAlt) == true then
+				_G.modules["Terrain"].Smooth(x, z, size)
+			elseif inputService:IsKeyDown(Enum.KeyCode.LeftShift) == true then
+				_G.modules["Terrain"].Increase(x, z, size, -strength)
+			else
+				_G.modules["Terrain"].Increase(x, z, size, strength)
+			end
+			local connectionUp = nil
+			local connectionMove = nil
+			connectionUp = mouse.Button1Up:Connect(function()
+				connectionUp:Disconnect()
+				connectionMove:Disconnect()
+			end)
+			connectionMove = mouse.Move:Connect(function()
+				if mouse.Target == nil then return end
+				local x = math.floor(mouse.Hit.Position.X / 4)
+				local z = math.floor(mouse.Hit.Position.Z / 4)
+				if positionX == x and positionZ == z then return end
+				positionX, positionZ = x, z
+				if inputService:IsKeyDown(Enum.KeyCode.LeftControl) == true and inputService:IsKeyDown(Enum.KeyCode.LeftAlt) == true then 
+					_G.modules["Terrain"].Set(x, z, size, nil)
+				elseif inputService:IsKeyDown(Enum.KeyCode.LeftControl) == true then
+					_G.modules["Terrain"].Set(x, z, size, height)
+				elseif inputService:IsKeyDown(Enum.KeyCode.LeftAlt) == true then
+					_G.modules["Terrain"].Smooth(x, z, size)
+				elseif inputService:IsKeyDown(Enum.KeyCode.LeftShift) == true then
+					_G.modules["Terrain"].Increase(x, z, size, -strength)
+				else
+					_G.modules["Terrain"].Increase(x, z, size, strength)
+				end
+			end)
+		end)
+		connection2 = mouse.WheelBackward:Connect(function()
+			if inputService:IsKeyDown(Enum.KeyCode.LeftShift) == true then
+				strengthOption:Set(strength - 0.1)
+			end
+			if inputService:IsKeyDown(Enum.KeyCode.LeftControl) == true then
+				sizeOption:Set(size - 1)
+			end
+		end)
+		connection3 = mouse.WheelForward:Connect(function()
+			if inputService:IsKeyDown(Enum.KeyCode.LeftShift) == true then
+				strengthOption:Set(strength + 0.1)
+			end
+			if inputService:IsKeyDown(Enum.KeyCode.LeftControl) == true then
+				sizeOption:Set(size + 1)
+			end
+		end)
+	end)
+	
+	widgetButton.deselected:Bind(function()
+		if connection1 ~= nil then connection1:Disconnect() connection1 = nil end
+		if connection2 ~= nil then connection2:Disconnect() connection2 = nil end
+		if connection3 ~= nil then connection3:Disconnect() connection3 = nil end
+	end)
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="16">
+        <Properties>
+          <string name="Name">Functions</string>
+          <string name="Source"><![CDATA[local module = {}
+
+module.Round = function(value, decimals)
+	local mult = 10 ^ (decimals or 0)
+	return math.round(value * mult) / mult
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="17">
+        <Properties>
+          <string name="Name">Options</string>
+          <string name="Source"><![CDATA[local module = {}
+
+local seedsGroup = nil
+local materialsGroup = nil
+local seeds = {}
+local materials = {}
+
+CreateSeed = function(data)
+	local seed = _G.classes["Seed"].New(data)
+	table.insert(seeds, seed)
+	table.insert(_G.modules["Terrain"].seeds, {data[1], data[2], data[3], data[4], data[5]})
+	seed.gui.LayoutOrder = #seeds
+	seedsGroup:AddChild(seed.gui)
+	seed.event:Bind(function(event, data)
+		local key = nil
+		for i, object in ipairs(seeds) do if seed == object then key = i break end end
+		if event == 1 then
+			_G.modules["Terrain"].seeds[key] = {data[1], data[2], data[3], data[4], data[5]}
+		elseif event == 2 then
+			local key2 = key - 1
+			if key2 < 1 then key2 = #seeds end
+			seeds[key].gui.LayoutOrder, seeds[key2].gui.LayoutOrder = seeds[key2].gui.LayoutOrder, seeds[key].gui.LayoutOrder
+			seeds[key], seeds[key2] = seeds[key2], seeds[key]
+			_G.modules["Terrain"].seeds[key], _G.modules["Terrain"].seeds[key2] = _G.modules["Terrain"].seeds[key2], _G.modules["Terrain"].seeds[key]
+		elseif event == 3 then
+			local key2 = key + 1
+			if key2 > #seeds then key2 = 1 end
+			seeds[key].gui.LayoutOrder, seeds[key2].gui.LayoutOrder = seeds[key2].gui.LayoutOrder, seeds[key].gui.LayoutOrder
+			seeds[key], seeds[key2] = seeds[key2], seeds[key]
+			_G.modules["Terrain"].seeds[key], _G.modules["Terrain"].seeds[key2] = _G.modules["Terrain"].seeds[key2], _G.modules["Terrain"].seeds[key]
+		elseif event == 4 then
+			seed:Destroy()
+			table.remove(seeds, key)
+			table.remove(_G.modules["Terrain"].seeds, key)
+		end
+	end)
+end
+
+ClearSeeds = function()
+	for i, object in ipairs(seeds) do
+		object:Destroy()
+	end
+	seeds = {}
+	_G.modules["Terrain"].seeds = {}
+end
+
+CreateMaterial = function(data)
+	local material = _G.classes["Material"].New(data)
+	table.insert(materials, material)
+	table.insert(_G.modules["Terrain"].materials, {data[1], data[2], data[3], data[4], data[5]})
+	material.gui.LayoutOrder = #materials
+	materialsGroup:AddChild(material.gui)
+	material.event:Bind(function(event, data)
+		local key = nil
+		for i, object in ipairs(materials) do if material == object then key = i break end end
+		if event == 1 then
+			if data[1] == nil then
+				material:Destroy()
+				table.remove(materials, key)
+				table.remove(_G.modules["Terrain"].materials, key)
+			else
+				_G.modules["Terrain"].materials[key] = {data[1], data[2], data[3], data[4], data[5]}
+			end
+		elseif event == 2 then
+			local key2 = key - 1
+			if key2 < 1 then key2 = #materials end
+			materials[key].gui.LayoutOrder, materials[key2].gui.LayoutOrder = materials[key2].gui.LayoutOrder, materials[key].gui.LayoutOrder
+			materials[key], materials[key2] = materials[key2], materials[key]
+			_G.modules["Terrain"].materials[key], _G.modules["Terrain"].materials[key2] = _G.modules["Terrain"].materials[key2], _G.modules["Terrain"].materials[key]
+		elseif event == 3 then
+			local key2 = key + 1
+			if key2 > #materials then key2 = 1 end
+			materials[key].gui.LayoutOrder, materials[key2].gui.LayoutOrder = materials[key2].gui.LayoutOrder, materials[key].gui.LayoutOrder
+			materials[key], materials[key2] = materials[key2], materials[key]
+			_G.modules["Terrain"].materials[key], _G.modules["Terrain"].materials[key2] = _G.modules["Terrain"].materials[key2], _G.modules["Terrain"].materials[key]
+		end
+	end)
+end
+
+ClearMaterials = function()
+	for i, object in ipairs(materials) do
+		object:Destroy()
+	end
+	materials = {}
+	_G.modules["Terrain"].materials = {}
+end
+
+module.Initiate = function()
+	local widgetButton = _G.classes["WidgetButton"].New("Terrain", "rbxassetid://3079007970", 1)
+	local widgetPage = _G.classes["WidgetPage"].New()
+	widgetButton:Select()
+	widgetPage:Show()
+	widgetButton:Activated(function()
+		_G.plugin:Deactivate()
+	end)
+		
+	_G.plugin.Deactivation:Connect(function()
+		widgetButton:Select()
+		widgetPage:Show()
+	end)
+	
+	local dataGroup = _G.classes["Group"].New("Data")
+	widgetPage:AddChild(dataGroup.gui)
+
+	local generateOption = _G.classes["Toggle"].New("Generate Terrain", false)
+	dataGroup:AddChild(generateOption.gui)
+	generateOption.event:Bind(function(value)
+		_G.modules["Terrain"].Enable(value)
+	end)
+	
+	local distanceOption = _G.classes["Number"].New("Distance", _G.modules["Terrain"].distance, {["minimum"] = 1, ["round"] = 0})
+	dataGroup:AddChild(distanceOption.gui)
+	distanceOption.event:Bind(function(value)
+		_G.modules["Terrain"].distance = value
+	end)
+	
+	local shiftOption = _G.classes["Number"].New("Shift", _G.modules["Terrain"].shift)
+	dataGroup:AddChild(shiftOption.gui)
+	shiftOption.event:Bind(function(value)
+		_G.modules["Terrain"].shift = value
+	end)
+	
+	local waterHeightOption = _G.classes["Number"].New("Water Height", _G.modules["Terrain"].waterHeight)
+	dataGroup:AddChild(waterHeightOption.gui)
+	waterHeightOption.event:Bind(function(value)
+		_G.modules["Terrain"].waterHeight = value
+	end)
+	
+	local minimumHeightOption = _G.classes["Number"].New("Minimum Height", _G.modules["Terrain"].minimumHeight)
+	dataGroup:AddChild(minimumHeightOption.gui)
+	minimumHeightOption.event:Bind(function(value)
+		_G.modules["Terrain"].minimumHeight = value
+	end)
+	
+	local maximumHeightOption = _G.classes["Number"].New("Maximum Height", _G.modules["Terrain"].maximumHeight)
+	dataGroup:AddChild(maximumHeightOption.gui)
+	maximumHeightOption.event:Bind(function(value)
+		_G.modules["Terrain"].maximumHeight = value
+	end)
+	
+	seedsGroup = _G.classes["Group"].New("Seeds")
+	widgetPage:AddChild(seedsGroup.gui)
+	
+	local seedOption = _G.classes["Button"].New("Add Seed")
+	seedOption.gui.LayoutOrder = 2147483647
+	seedsGroup:AddChild(seedOption.gui)
+	seedOption.event:Bind(function()
+		CreateSeed({_G.modules["Functions"].Round(math.random(10000, 99999) + math.random(), 3), 50, 0.04, -10, 10})
+	end)
+	
+	materialsGroup = _G.classes["Group"].New("Materials")
+	widgetPage:AddChild(materialsGroup.gui)
+	
+	local materialOption = _G.classes["Button"].New("Add Material")
+	materialOption.gui.LayoutOrder = 2147483647
+	materialsGroup:AddChild(materialOption.gui)
+	materialOption.event:Bind(function()
+		CreateMaterial({1376, -10000, 10000, 0, 10000})
+	end)
+	
+	local functionsGroup = _G.classes["Group"].New("Functions")
+	widgetPage:AddChild(functionsGroup.gui)
+	
+	local saveOption = _G.classes["Button"].New("Save")
+	functionsGroup:AddChild(saveOption.gui)
+	saveOption.event:Bind(function()
+		local selection = game.Selection:Get()[1]
+		if selection == nil then return end
+		for i, child in ipairs(selection:GetChildren()) do
+			if child.Name ~= "TerrainData" then continue end
+			if child.ClassName ~= "ModuleScript" then continue end
+			if child:GetAttribute("Data") ~= "Terrain" then continue end
+			child:Destroy()
+		end
+		local buffer = {}
+		local moduleScript = Instance.new("ModuleScript")
+		moduleScript.Name = "TerrainData"
+		moduleScript:SetAttribute("Data", "Terrain")
+		
+		table.insert(buffer, 'return {\n')
+		
+		table.insert(buffer, '	["shift"] = ')
+		table.insert(buffer, _G.modules["Terrain"].shift)
+		table.insert(buffer, ',\n')
+		
+		table.insert(buffer, '	["waterHeight"] = ')
+		table.insert(buffer, _G.modules["Terrain"].waterHeight)
+		table.insert(buffer, ',\n')
+		
+		table.insert(buffer, '	["minimumHeight"] = ')
+		table.insert(buffer, _G.modules["Terrain"].minimumHeight)
+		table.insert(buffer, ',\n')
+		
+		table.insert(buffer, '	["maximumHeight"] = ')
+		table.insert(buffer, _G.modules["Terrain"].maximumHeight)
+		table.insert(buffer, ',\n')
+		
+		table.insert(buffer, '	["seeds"] = {\n')
+		for i, data in ipairs(_G.modules["Terrain"].seeds) do
+			table.insert(buffer, '		{')
+			table.insert(buffer, data[1])
+			table.insert(buffer, ', ')
+			table.insert(buffer, data[2])
+			table.insert(buffer, ', ')
+			table.insert(buffer, data[3])
+			table.insert(buffer, ', ')
+			table.insert(buffer, data[4])
+			table.insert(buffer, ', ')
+			table.insert(buffer, data[5])
+			table.insert(buffer, '},\n')
+		end
+		table.insert(buffer, '	},\n')
+		
+		table.insert(buffer, '	["materials"] = {\n')
+		for i, data in ipairs(_G.modules["Terrain"].materials) do
+			table.insert(buffer, '		{')
+			table.insert(buffer, data[1])
+			table.insert(buffer, ', ')
+			table.insert(buffer, data[2])
+			table.insert(buffer, ', ')
+			table.insert(buffer, data[3])
+			table.insert(buffer, ', ')
+			table.insert(buffer, data[4])
+			table.insert(buffer, ', ')
+			table.insert(buffer, data[5])
+			table.insert(buffer, '},\n')
+		end
+		table.insert(buffer, '	},\n')
+		
+		table.insert(buffer, '}')
+		
+		moduleScript.Source = table.concat(buffer)		
+		moduleScript.Parent = selection
+	end)
+		
+	local loadOption = _G.classes["Button"].New("Load")
+	functionsGroup:AddChild(loadOption.gui)
+	loadOption.event:Bind(function()
+		local selection = game.Selection:Get()[1]
+		if selection == nil then return end
+		if selection.ClassName ~= "ModuleScript" then return end
+		if selection:GetAttribute("Data") ~= "Terrain" then return end
+		
+		local func = loadstring(selection.Source)
+		if typeof(func) ~= "function" then return end
+		local data = func()
+		if typeof(data) ~= "table" then return end
+		
+		shiftOption:Set(data.shift)
+		waterHeightOption:Set(data.waterHeight)
+		minimumHeightOption:Set(data.minimumHeight)
+		maximumHeightOption:Set(data.maximumHeight)
+		
+		ClearSeeds()
+		for i, data in ipairs(data.seeds) do
+			CreateSeed(data)
+		end
+		
+		ClearMaterials()
+		for i, data in ipairs(data.materials) do
+			CreateMaterial(data)
+		end
+	end)
+	
+	local LocalOption = _G.classes["Button"].New("Create Local Script")
+	functionsGroup:AddChild(LocalOption.gui)
+	LocalOption.event:Bind(function()
+		local clone = _G.root.LocalScript:Clone()
+		clone.Name = "Terrain"
+		clone.Disabled = false
+		clone.Parent = game.ReplicatedFirst
+		game.Selection:Set({clone})
+	end)
+	
+	local clearTerrainOption = _G.classes["Button"].New("Clear Terrain")
+	functionsGroup:AddChild(clearTerrainOption.gui)
+	clearTerrainOption.event:Bind(function()
+		_G.modules["Terrain"].Clear()
+	end)
+
+	local clearAllTerrainOption = _G.classes["Button"].New("Clear All Terrain")
+	functionsGroup:AddChild(clearAllTerrainOption.gui)
+	clearAllTerrainOption.event:Bind(function()
+		_G.modules["Terrain"].ClearAll()
+	end)
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="18">
+        <Properties>
+          <string name="Name">Paint</string>
+          <string name="Source"><![CDATA[local module = {}
+
+local inputService = game:GetService("UserInputService")
+local positionX = math.huge
+local positionZ = math.huge
+local material = 1376
+local size = 4
+
+module.Initiate = function()
+	local mouse = _G.plugin:GetMouse()
+	local connection1 = nil
+	local connection2 = nil
+	local connection3 = nil
+
+	local widgetButton = _G.classes["WidgetButton"].New("Paint", "rbxassetid://3078999048", 3)
+	local widgetPage = _G.classes["WidgetPage"].New()
+	
+	local dataGroup = _G.classes["Group"].New("Data")
+	widgetPage:AddChild(dataGroup.gui)
+	
+
+	local materialsOption = _G.classes["Materials"].New(material)
+	dataGroup:AddChild(materialsOption.gui)
+	materialsOption.event:Bind(function(value)
+		material = value
+		materialsOption:Select(value)
+	end)
+	
+	local sizeOption = _G.classes["Number"].New("Size", size, {["minimum"] = 0, ["round"] = 0})
+	dataGroup:AddChild(sizeOption.gui)
+	sizeOption.event:Bind(function(value)
+		size = value
+	end)
+	
+	local functionsGroup = _G.classes["Group"].New("Functions")
+	widgetPage:AddChild(functionsGroup.gui)
+	
+	local saveOption = _G.classes["Button"].New("Save Material Data")
+	functionsGroup:AddChild(saveOption.gui)
+	saveOption.event:Bind(function()
+		local selection = game.Selection:Get()[1]
+		if selection == nil then return end
+		for i, child in ipairs(selection:GetChildren()) do
+			if child.Name ~= "MaterialData" then continue end
+			if child.ClassName ~= "Folder" then continue end
+			if child:GetAttribute("Data") ~= "Material" then continue end
+			child:Destroy()
+		end
+		local chunkSize = 64
+		local folder = Instance.new("Folder")
+		folder.Name = "MaterialData"
+		folder:SetAttribute("Data", "Material")
+		folder.Parent = selection
+		local datas = {}
+		for x, v in pairs(_G.modules["Terrain"].materialData) do
+			for z, material in pairs(v) do
+				local chunkX = math.floor(x / chunkSize)
+				local chunkZ = math.floor(z / chunkSize)
+				local lx = x - chunkX * chunkSize
+				local lz = z - chunkZ * chunkSize
+				if datas[chunkX] == nil then datas[chunkX] = {} end
+				local data = datas[chunkX][chunkZ]
+				if data == nil then
+					data = {}
+					datas[chunkX][chunkZ] = data
+					data.script = Instance.new("ModuleScript")
+					data.buffer = {}
+					table.insert(data.buffer, 'return {\n')
+				end
+				if data.x ~= lx then
+					if data.x ~= nil then table.insert(data.buffer, '},\n') end
+					table.insert(data.buffer, lx)
+					table.insert(data.buffer, ',{')
+					data.x = lx
+				else
+					table.insert(data.buffer, ',')
+				end
+				table.insert(data.buffer, lz)
+				table.insert(data.buffer, ',')
+				table.insert(data.buffer, material)
+			end
+		end
+		for chunkX, v in pairs(datas) do
+			for chunkZ, data in pairs(v) do
+				table.insert(data.buffer, '},\n}')
+				data.script.Name = chunkX .. "," .. chunkZ
+				data.script:SetAttribute("Position", Vector2.new(chunkX * chunkSize, chunkZ * chunkSize))
+				data.script.Source = table.concat(data.buffer)
+				data.script.Parent = folder
+			end
+		end	
+	end)
+
+	local loadOption = _G.classes["Button"].New("Load Material Data")
+	functionsGroup:AddChild(loadOption.gui)
+	loadOption.event:Bind(function()
+		local selection = game.Selection:Get()[1]
+		if selection == nil then return end
+		if selection.ClassName ~= "Folder" then return end
+		if selection:GetAttribute("Data") ~= "Material" then return end
+		for i, child in ipairs(selection:GetDescendants()) do
+			if child.ClassName ~= "ModuleScript" then continue end
+			local func = loadstring(child.Source)
+			if typeof(func) ~= "function" then return end
+			local data = func()
+			if typeof(data) ~= "table" then return end
+			local position = child:GetAttribute("Position")
+			for i = 1, #data, 2 do
+				local x = position.X + data[i]
+				local zData = data[i + 1]
+				if _G.modules["Terrain"].materialData[x] == nil then _G.modules["Terrain"].materialData[x] = {} end
+				for j = 1, #zData, 2 do
+					local z = position.Y + zData[j]
+					local material = zData[j + 1]
+					_G.modules["Terrain"].materialData[x][z] = material
+				end
+			end
+		end
+	end)
+	
+	local clearEditDataOption = _G.classes["Button"].New("Clear Material Data")
+	functionsGroup:AddChild(clearEditDataOption.gui)
+	clearEditDataOption.event:Bind(function()
+		_G.modules["Terrain"].materialData = {}
+	end)
+	
+	local clearTerrainOption = _G.classes["Button"].New("Clear Terrain")
+	functionsGroup:AddChild(clearTerrainOption.gui)
+	clearTerrainOption.event:Bind(function()
+		_G.modules["Terrain"].Clear()
+	end)
+
+	local clearAllTerrainOption = _G.classes["Button"].New("Clear All Terrain")
+	functionsGroup:AddChild(clearAllTerrainOption.gui)
+	clearAllTerrainOption.event:Bind(function()
+		_G.modules["Terrain"].ClearAll()
+	end)
+
+	widgetButton:Activated(function()
+		widgetButton:Select()
+		widgetPage:Show()
+	end)
+
+	widgetButton.selected:Bind(function()
+		_G.plugin:Activate(true)
+		connection1 = mouse.Button1Down:Connect(function()
+			if mouse.Target == nil then return end
+			local x = math.floor(mouse.Hit.Position.X / 4)
+			local z = math.floor(mouse.Hit.Position.Z / 4)
+			positionX, positionZ = x, z
+			_G.modules["Terrain"].Paint(x, z, size, material)
+			local connectionUp = nil
+			local connectionMove = nil
+			connectionUp = mouse.Button1Up:Connect(function()
+				connectionUp:Disconnect()
+				connectionMove:Disconnect()
+			end)
+			connectionMove = mouse.Move:Connect(function()
+				if mouse.Target == nil then return end
+				local x = math.floor(mouse.Hit.Position.X / 4)
+				local z = math.floor(mouse.Hit.Position.Z / 4)
+				if positionX == x and positionZ == z then return end
+				positionX, positionZ = x, z
+				_G.modules["Terrain"].Paint(x, z, size, material)
+			end)
+		end)
+		connection2 = mouse.WheelBackward:Connect(function()
+			if inputService:IsKeyDown(Enum.KeyCode.LeftControl) == true then
+				sizeOption:Set(size - 1)
+			end
+		end)
+		connection3 = mouse.WheelForward:Connect(function()
+			if inputService:IsKeyDown(Enum.KeyCode.LeftControl) == true then
+				sizeOption:Set(size + 1)
+			end
+		end)
+	end)
+
+	widgetButton.deselected:Bind(function()
+		if connection1 ~= nil then connection1:Disconnect() connection1 = nil end
+		if connection2 ~= nil then connection2:Disconnect() connection2 = nil end
+		if connection3 ~= nil then connection3:Disconnect() connection3 = nil end
+	end)
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="19">
+        <Properties>
+          <string name="Name">Terrain</string>
+          <string name="Source"><![CDATA[local module = {}
+
+local chunkSize = 16
+local waterHeight = 0
+local positionX = math.huge
+local positionZ = math.huge
+local connection = nil
+local heightData = {}
+local loaded = {}
+
+module.heightData = {}
+module.materialData = {}
+module.distance = 6
+module.seeds = {}
+module.materials = {}
+module.shift = 0
+module.waterHeight = waterHeight
+module.minimumHeight = -10000
+module.maximumHeight = 10000
+
+LoadHeight = function(x, z)
+	if heightData[x] == nil then heightData[x] = {} end
+	if heightData[x][z] == nil then heightData[x][z] = {} end
+	
+	if heightData[x][z].height ~= nil then
+		return heightData[x][z].height
+	end
+	
+	if module.heightData[x] ~= nil and module.heightData[x][z] ~= nil then
+		heightData[x][z].height = module.heightData[x][z]
+		return module.heightData[x][z]
+	end
+	
+	local height = 0
+	for i, data in ipairs(module.seeds) do
+		local noise = math.noise(x * data[3], data[1], z * data[3])
+		height += math.clamp(noise, data[4], data[5]) * data[2]
+	end
+	height += module.shift
+	height = math.clamp(height, module.minimumHeight, module.maximumHeight)
+	heightData[x][z].height = height
+	return height
+end
+
+Load = function(x, z)
+	if heightData[x] == nil then heightData[x] = {} end
+	if heightData[x][z] == nil then heightData[x][z] = {} end
+	
+	local data = heightData[x][z]
+	
+	if data.minimum ~= nil then return end
+	data.minimum = math.huge
+	local maximum = -math.huge
+	for xx = x-1, x+1 do
+		for zz = z-1, z+1 do
+			local height = LoadHeight(xx, zz)
+			data.minimum = math.min(data.minimum, height)
+			maximum = math.max(maximum, height)
+		end
+	end
+	
+	local height = data.height
+	local slope = maximum - data.minimum
+	local thickness = height - data.minimum + 4
+	local cFrame = CFrame.new(x * 4 + 2, height - thickness / 2, z * 4 + 2)
+	local size = Vector3.new(4, thickness, 4)
+	if module.materialData[x] ~= nil and module.materialData[x][z] ~= nil then
+		workspace.Terrain:FillBlock(cFrame, size, module.materialData[x][z])
+	else
+		for i, materialData in ipairs(module.materials) do
+			if height >= materialData[2] and height < materialData[3] and slope >= materialData[4] and slope < materialData[5] then
+				workspace.Terrain:FillBlock(cFrame, size, materialData[1])
+				break
+			end
+		end
+	end
+	
+	height = math.floor(height / 4) * 4
+	if height >= waterHeight then return end
+	thickness = waterHeight - height
+	local cFrame = CFrame.new(x * 4 + 2, height + thickness / 2, z * 4 + 2)
+	local size = Vector3.new(4, thickness, 4)
+	workspace.Terrain:FillBlock(cFrame, size, Enum.Material.Water)
+end
+
+Unload = function(x, z)
+	if heightData[x] == nil or heightData[x][z] == nil or heightData[x][z].minimum == nil then return end
+	
+	local data = heightData[x][z]
+	local minimum = data.minimum
+	local maximum = math.max(data.height, waterHeight)
+
+	minimum = math.floor(minimum / 4) * 4 - 4
+	maximum = math.ceil(maximum / 4) * 4
+	local thickness = maximum - minimum
+	local cFrame = CFrame.new(x * 4 + 2, minimum + thickness / 2, z * 4 + 2)
+	local size = Vector3.new(4, thickness, 4)
+	workspace.Terrain:FillBlock(cFrame, size, Enum.Material.Air)
+	heightData[x][z] = nil
+end
+
+LoadChunk = function(chunkX, chunkZ)
+	if loaded[chunkX] == nil then loaded[chunkX] = {} end
+	if loaded[chunkX][chunkZ] ~= nil then return end
+	loaded[chunkX][chunkZ] = true
+	local startX = chunkX * chunkSize
+	local startZ = chunkZ * chunkSize
+	local endX = startX + chunkSize - 1
+	local endZ = startZ + chunkSize - 1
+	for x = startX, endX do
+		for z = startZ, endZ do
+			Load(x, z)
+		end
+	end
+	wait()
+end
+
+LoadChunks = function(chunkX, chunkZ, hole)
+	if hole == nil then hole = 0 LoadChunk(chunkX, chunkZ) end
+	hole = hole * 2 + 1
+	local x = chunkX + math.floor(hole/2)
+	local z = chunkZ - math.floor(hole/2)
+	local dx, dz = 1, 0
+	local passed = hole - 1
+	local length = hole
+	local amount = (module.distance * 2 + 1) * (module.distance * 2 + 1) - hole * hole
+	for i = 1, amount do
+		x += dx z += dz
+		if Vector2.new(chunkX - x, chunkZ - z).Magnitude < module.distance + 0.5 then LoadChunk(x, z) end
+		passed += 1
+		if passed == length then passed = 0 dx, dz = -dz, dx if dz == 0 then length += 1 end end
+		if connection == nil then return end
+	end
+end
+
+module.Set = function(x, z, size, height)
+	if height ~= nil then height = math.round(height * 10) / 10 end
+	for xx = x - size, x + size do
+		for zz = z - size, z + size do
+			local magnitude = Vector2.new(xx - x , zz - z).Magnitude
+			local strength = math.max(size + 0.5 - magnitude, 0) / (size + 0.5)
+			if strength == 0 then continue end
+			if module.heightData[xx] == nil then module.heightData[xx] = {} end
+			module.heightData[xx][zz] = height
+			if height == nil and next(module.heightData[xx]) == nil then
+				module.heightData[xx] = nil
+			end
+		end
+	end
+	for xx = x - size - 1, x + size + 1 do
+		for zz = z - size - 1, z + size + 1 do
+			Unload(xx, zz)
+		end
+	end
+	for xx = x - size - 1, x + size + 1 do
+		for zz = z - size - 1, z + size + 1 do
+			Load(xx, zz)
+		end
+	end
+end
+
+module.Increase = function(x, z, size, amount)
+	for xx = x - size, x + size do
+		for zz = z - size, z + size do
+			local magnitude = Vector2.new(xx - x , zz - z).Magnitude
+			local strength = math.max(size + 0.5 - magnitude, 0) / (size + 0.5)
+			if strength == 0 then continue end
+			local height = LoadHeight(xx, zz)
+			height = math.round((height + amount * strength) * 10) / 10
+			if module.heightData[xx] == nil then module.heightData[xx] = {} end
+			module.heightData[xx][zz] = height
+		end
+	end
+	for xx = x - size - 1, x + size + 1 do
+		for zz = z - size - 1, z + size + 1 do
+			Unload(xx, zz)
+		end
+	end
+	for xx = x - size - 1, x + size + 1 do
+		for zz = z - size - 1, z + size + 1 do
+			Load(xx, zz)
+		end
+	end
+end
+
+module.Smooth = function(x, z, size)
+	for xx = x - size, x + size do
+		for zz = z - size, z + size do
+			local magnitude = Vector2.new(xx - x , zz - z).Magnitude
+			local strength = math.max(size + 0.5 - magnitude, 0) / (size + 0.5)
+			if strength == 0 then continue end
+			local height = 0
+			local count = 0
+			local minimum = math.huge
+			local maximum = -math.huge
+			for xxx = xx-1, xx+1 do
+				for zzz = zz-1, zz+1 do
+					height += LoadHeight(xxx, zzz)
+					count += 1
+				end
+			end
+			height = math.round((height / count) * 10) / 10
+			if module.heightData[xx] == nil then module.heightData[xx] = {} end
+			module.heightData[xx][zz] = height
+		end
+	end
+	for xx = x - size - 1, x + size + 1 do
+		for zz = z - size - 1, z + size + 1 do
+			Unload(xx, zz)
+		end
+	end
+	for xx = x - size - 1, x + size + 1 do
+		for zz = z - size - 1, z + size + 1 do
+			Load(xx, zz)
+		end
+	end
+end
+
+module.Paint = function(x, z, size, material)
+	for xx = x - size, x + size do
+		for zz = z - size, z + size do
+			local magnitude = Vector2.new(xx - x , zz - z).Magnitude
+			local strength = math.max(size + 0.5 - magnitude, 0) / (size + 0.5)
+			if strength == 0 then continue end
+			if module.materialData[xx] == nil then module.materialData[xx] = {} end
+			module.materialData[xx][zz] = material
+			if material == nil and next(module.materialData[xx]) == nil then
+				module.materialData[xx] = nil
+			end
+			Unload(xx, zz)
+			Load(xx, zz)
+		end
+	end
+end
+
+module.Clear = function()
+	for x, object in pairs(heightData) do
+		for z, v in pairs(object) do
+			Unload(x, z)
+		end
+	end
+	waterHeight = module.waterHeight
+	loaded = {}
+	heightData = {}
+	if connection == nil then return end
+	positionX, positionZ = workspace.CurrentCamera.Focus.Position.X, workspace.CurrentCamera.Focus.Position.Z
+	local x = math.floor(positionX / 4 / chunkSize)
+	local z = math.floor(positionZ / 4 / chunkSize)
+	LoadChunks(x, z)
+end
+
+module.ClearAll = function()
+	game.Workspace.Terrain:Clear()
+	waterHeight = module.waterHeight
+	loaded = {}
+	heightData = {}
+	if connection == nil then return end
+	positionX, positionZ = workspace.CurrentCamera.Focus.Position.X, workspace.CurrentCamera.Focus.Position.Z
+	local x = math.floor(positionX / 4 / chunkSize)
+	local z = math.floor(positionZ / 4 / chunkSize)
+	LoadChunks(x, z)
+end
+
+module.Enable = function(value)
+	if value == false then
+		if connection == nil then return end
+		connection:Disconnect()
+		connection = nil
+	else
+		if connection ~= nil then return end
+		connection = workspace.CurrentCamera:GetPropertyChangedSignal("Focus"):Connect(function()
+			local x = workspace.CurrentCamera.Focus.Position.X
+			local z = workspace.CurrentCamera.Focus.Position.Z
+			local magnitude = Vector2.new(positionX - x, positionZ - z).Magnitude
+			if magnitude < chunkSize * 8 then return end
+			positionX, positionZ = x, z
+			x = math.floor(positionX / 4 / chunkSize)
+			z = math.floor(positionZ / 4 / chunkSize)
+			if magnitude < module.distance * chunkSize * 2 then
+				LoadChunks(x, z, math.floor(module.distance / 2 - 0.5))
+			else
+				LoadChunks(x, z)
+			end
+		end)
+		positionX, positionZ = workspace.CurrentCamera.Focus.Position.X, workspace.CurrentCamera.Focus.Position.Z
+		local x = math.floor(positionX / 4 / chunkSize)
+		local z = math.floor(positionZ / 4 / chunkSize)
+		LoadChunks(x, z)
+	end
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="20">
+        <Properties>
+          <string name="Name">Widget</string>
+          <string name="Source"><![CDATA[local module = {}
+
+module.Initialise = function()
+	local toolbar = _G.plugin:CreateToolbar("Terrain")
+	local button = toolbar:CreateButton("Infinite Terrain", "Create and edit terrain", "rbxassetid://3079008425")
+	local widgetInfo = DockWidgetPluginGuiInfo.new(Enum.InitialDockState.Float, false, false, 200, 300, 150, 150)
+	button.ClickableWhenViewportHidden = true
+	button.Click:Connect(function() _G.modules["Widget"].window.Enabled = not _G.modules["Widget"].window.Enabled end)
+	_G.modules["Widget"].window = _G.plugin:CreateDockWidgetPluginGui("InfiniteTerrain", widgetInfo)
+	_G.modules["Widget"].window.Title = "Infinite Terrain"
+	_G.modules["Widget"].window:GetPropertyChangedSignal("Enabled"):Connect(function() if _G.modules["Widget"].window.Enabled then button:SetActive(true) else button:SetActive(false) end end)
+	
+	_G.modules["Widget"].frame = Instance.new("Frame")
+	_G.modules["Widget"].frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	_G.modules["Widget"].frame.BorderSizePixel = 0
+	_G.modules["Widget"].frame.Size = UDim2.new(1, 0, 0, 60)
+	_G.modules["Widget"].frame.Parent = _G.modules["Widget"].window
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingBottom = UDim.new(0, 4)
+	padding.PaddingLeft = UDim.new(0, 4)
+	padding.PaddingTop = UDim.new(0, 4)
+	padding.Parent = _G.modules["Widget"].frame
+
+	local listLayout = Instance.new("UIListLayout")
+	listLayout.FillDirection = Enum.FillDirection.Horizontal
+	listLayout.Padding = UDim.new(0, 4)
+	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	listLayout.Parent = _G.modules["Widget"].frame
+end
+
+return module
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Script" referent="21">
+      <Properties>
+        <string name="Name">Script</string>
+        <string name="Source">_G.plugin = plugin
+_G.root = script.Parent
+_G.modules = {}
+_G.classes = {}
+for i, descendant in ipairs(script.Parent:GetDescendants()) do
+	if descendant.ClassName ~= 'ModuleScript' then continue end
+	local module = require(descendant)
+	if module.__index == nil then
+		_G.modules[descendant.Name] = module
+	else
+		_G.classes[descendant.Name] = module
+	end
+end
+for i, module in pairs(_G.modules) do
+	if module.Initialise then module.Initialise() end
+end
+for i, module in pairs(_G.modules) do
+	if module.Initiate then module.Initiate() end
+end</string>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

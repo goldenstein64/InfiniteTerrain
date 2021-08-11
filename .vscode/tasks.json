@@ -1,0 +1,22 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "type": "shell",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "command": "rojo build default.project.json -o InfiniteTerrain.rbxmx"
+    },
+    {
+      "label": "Build to Plugin Folder (Windows)",
+      "type": "shell",
+      "group": "build",
+      "command": "rojo build default.project.json -o $env:USERPROFILE/AppData/Local/Roblox/Plugins/InfiniteTerrain.rbxmx"
+    }
+  ]
+}

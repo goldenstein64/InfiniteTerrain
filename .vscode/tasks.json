@@ -4,19 +4,37 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build",
+      "label": "Build Plugin",
       "type": "shell",
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "command": "rojo build package.project.json -o InfiniteTerrain.rbxmx"
+      "windows": {
+        "command": "${env:USERPROFILE}/${config:rojoPathWindows} build package.project.json -o InfiniteTerrain.rbxmx"
+      },
+      "problemMatcher": []
     },
     {
-      "label": "Build to Plugin Folder (Windows)",
+      "label": "Build to Plugin Folder",
       "type": "shell",
       "group": "build",
-      "command": "rojo build package.project.json -o $env:USERPROFILE/AppData/Local/Roblox/Plugins/InfiniteTerrain.rbxmx"
+      "windows": {
+        "command": "${env:USERPROFILE}/${config:rojoPathWindows} build package.project.json -o ${env:USERPROFILE}/${config:robloxPluginsPath}/InfiniteTerrain.rbxmx"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Test Place",
+      "type": "shell",
+      "group": "build",
+      "windows": {
+        "command": "${env:USERPROFILE}/${config:rojoPathWindows} build default.project.json -o InfiniteTerrainTest.rbxlx"
+      },
+      "dependsOn": [
+        "Build to Plugin Folder"
+      ],
+      "problemMatcher": []
     },
     {
       "label": "Serve",
@@ -25,7 +43,18 @@
         "kind": "test",
         "isDefault": true
       },
-      "command": "rojo serve default.project.json"
+      "windows": {
+        "command": "${command:rojo.start}",
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Remove Plugin",
+      "type": "shell",
+      "windows": {
+        "command": "if (Test-Path ${env:USERPROFILE}/${config:robloxPluginsPath}/InfiniteTerrain.rbxmx) { Remove-Item ${env:USERPROFILE}/${config:robloxPluginsPath}/InfiniteTerrain.rbxmx }"
+      },
+      "problemMatcher": []
     }
   ]
 }

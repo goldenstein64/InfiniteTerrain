@@ -6,7 +6,7 @@
       "$className": "PluginDebugService",
       "user_InfiniteTerrain.rbxmx": {
         "$className": "Plugin",
-        "Model": {
+        "InfiniteTerrain": {
           "$path": "src"
         }
       }

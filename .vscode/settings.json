@@ -1,0 +1,5 @@
+{
+  // these are prefixed by $env:USERPROFILE/, or C:/Users/USER/
+  "rojoPathWindows": "AppData/Roaming/Code/User/globalStorage/evaera.vscode-rojo/rojo-v6.2.0.exe",
+  "robloxPluginsPath": "AppData/Local/Roblox/Plugins"
+}

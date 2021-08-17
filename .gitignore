@@ -1,0 +1,8 @@
+
+*.rbxlx
+*.rbxl
+*.rbxmx
+*.rbxm
+
+*.rbxlx.lock
+*.rbxl.lock

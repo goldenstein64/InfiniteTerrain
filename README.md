@@ -6,12 +6,13 @@ Last Adapted Update: 11 August 2021
 
 This project is designed to be used with [Rojo](https://rojo.space/).
 
-You can build the project from scratch by using the Rojo CLI. This PowerShell command (Windows only) builds the plugin and adds it to your local plugins folder.
+## Testing
 
-```powershell
-# in the repo's directory
-rojo build package.project.json -o $env:USERPROFILE/AppData/Local/Roblox/Plugins/InfiniteTerrain.rbxmx
-```
+You can also build, edit and test the plugin by cloning the repository and opening the file in [Visual Studio Code](https://code.visualstudio.com/). You will want the VS Code Rojo extension; it can be found in the extension recommendations tab, but you can also install it via [this link](https://marketplace.visualstudio.com/items?itemName=evaera.vscode-rojo).
+
+To test the plugin, you can run the `Build Test Place` task (in Terminal > Run Task...) and open the resulting place in the repo directory.
+
+Once done testing, it will leave the plugin in your local plugin directory, so you can run the `Remove Plugin` task to remove it from your local plugins.
 
 Original Content:
 ___

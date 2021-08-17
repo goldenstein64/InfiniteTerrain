@@ -6,7 +6,7 @@ Last Adapted Update: 11 August 2021
 
 This project is designed to be used with [Rojo](https://rojo.space/).
 
-## Testing
+## Testing (Windows)
 
 You can also build, edit and test the plugin by cloning the repository and opening the file in [Visual Studio Code](https://code.visualstudio.com/). You will want the VS Code Rojo extension; it can be found in the extension recommendations tab, but you can also install it via [this link](https://marketplace.visualstudio.com/items?itemName=evaera.vscode-rojo).
 
